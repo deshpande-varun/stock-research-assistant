@@ -63,30 +63,30 @@ export default function NewsView() {
   };
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/30">
-            <Newspaper size={32} className="text-white" />
+      <div className="mb-6 md:mb-8">
+        <div className="flex items-center gap-3 md:gap-4 mb-3">
+          <div className="p-2 md:p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl md:rounded-2xl shadow-lg shadow-blue-500/30">
+            <Newspaper size={24} className="md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Market News
             </h1>
-            <p className="text-gray-400 mt-1">Real-time updates from leading tech companies</p>
+            <p className="text-gray-400 text-sm md:text-base mt-1">Real-time updates from leading tech companies</p>
           </div>
         </div>
       </div>
 
       {/* Filter Buttons */}
-      <div className="mb-8 bg-gray-900/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-800/50 shadow-xl">
+      <div className="mb-6 md:mb-8 bg-gray-900/50 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-800/50 shadow-xl">
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedFilter('all')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+            className={`px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl text-sm md:text-base font-semibold transition-all duration-200 ${
               selectedFilter === 'all'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50 scale-105'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
                 : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:text-white'
             }`}
           >
@@ -96,9 +96,9 @@ export default function NewsView() {
             <button
               key={symbol}
               onClick={() => setSelectedFilter(symbol)}
-              className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 ${
+              className={`px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl text-sm md:text-base font-semibold transition-all duration-200 ${
                 selectedFilter === symbol
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50 scale-105'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
                   : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:text-white'
               }`}
             >
@@ -142,7 +142,7 @@ export default function NewsView() {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-gradient-to-br from-gray-900 to-gray-900/50 rounded-2xl p-6 border border-gray-800/50 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 group card-hover backdrop-blur-sm"
+                className="block bg-gradient-to-br from-gray-900 to-gray-900/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-gray-800/50 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 group card-hover backdrop-blur-sm"
               >
                 {/* Header with badges and time */}
                 <div className="flex items-center gap-3 mb-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, TrendingUp, Building2, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, TrendingUp, Building2, Sparkles, ArrowRight, Menu, X } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +11,7 @@ export default function Header({ currentView, onViewChange, onSearch }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchRef = useRef(null);
   const debounceTimer = useRef(null);
 
@@ -119,31 +120,39 @@ export default function Header({ currentView, onViewChange, onSearch }) {
 
   return (
     <header className="bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50 shadow-xl">
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+      <div className="px-4 md:px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-4">
           <h1
-            className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => onViewChange('dashboard')}
+            className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => {
+              onViewChange('dashboard');
+              setMobileMenuOpen(false);
+            }}
           >
             StockPulse
           </h1>
-          <nav className="flex gap-2">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  currentView === item.id
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
         </div>
-        <div className="flex items-center gap-4">
+
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex gap-2">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                currentView === item.id
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-4">
           <form onSubmit={handleSearch} className="relative" ref={searchRef}>
             <div className="relative">
               <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none z-10" />
@@ -268,7 +277,68 @@ export default function Header({ currentView, onViewChange, onSearch }) {
             <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 hover:opacity-20 blur transition-opacity"></div>
           </button>
         </div>
+
+        {/* Mobile Search & Menu Button */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-gray-400 hover:text-white transition-colors"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-gray-900 border-t border-gray-800"
+          >
+            <div className="px-4 py-4 space-y-2">
+              {/* Mobile Search */}
+              <div className="relative mb-4" ref={searchRef}>
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none z-10" />
+                <input
+                  type="text"
+                  placeholder="Search stocks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2.5 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-gray-500 text-sm"
+                />
+              </div>
+
+              {/* Mobile Navigation */}
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onViewChange(item.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 text-left ${
+                    currentView === item.id
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+
+              {/* Mobile Upgrade Button */}
+              <button className="w-full mt-4 px-4 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg">
+                Upgrade Pro
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
