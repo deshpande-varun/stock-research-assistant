@@ -165,33 +165,153 @@ def get_stock_news(symbol: str):
 
         news_items = []
         for item in news[:10]:
-            news_items.append({
-                "title": item.get('title', ''),
-                "source": item.get('publisher', 'Unknown'),
-                "published_at": datetime.fromtimestamp(item.get('providerPublishTime', 0)).strftime("%Y-%m-%d %H:%M:%S"),
-                "url": item.get('link', ''),
-                "summary": item.get('title', '')
-            })
+            try:
+                # Handle new yfinance news structure
+                if isinstance(item, dict) and 'content' in item:
+                    content = item.get('content', {})
+                    if not content:
+                        continue
+
+                    title = content.get('title', '')
+                    summary = content.get('summary', content.get('description', ''))
+                    pub_date = content.get('pubDate', content.get('displayTime', ''))
+                    provider = content.get('provider', {}) or {}
+                    source = provider.get('displayName', 'Unknown')
+
+                    click_through = content.get('clickThroughUrl', {}) or {}
+                    canonical = content.get('canonicalUrl', {}) or {}
+                    url = click_through.get('url', canonical.get('url', ''))
+
+                    # Parse the date
+                    try:
+                        from dateutil import parser
+                        parsed_date = parser.parse(pub_date)
+                        formatted_date = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+                    except:
+                        formatted_date = str(pub_date) if pub_date else 'Unknown'
+
+                    if title:  # Only add if we have a title
+                        news_items.append({
+                            "title": title,
+                            "source": source,
+                            "published_at": formatted_date,
+                            "url": url,
+                            "summary": summary or title
+                        })
+                else:
+                    # Handle old structure (fallback)
+                    title = item.get('title', '')
+                    if title:
+                        news_items.append({
+                            "title": title,
+                            "source": item.get('publisher', 'Unknown'),
+                            "published_at": datetime.fromtimestamp(item.get('providerPublishTime', 0)).strftime("%Y-%m-%d %H:%M:%S"),
+                            "url": item.get('link', ''),
+                            "summary": title
+                        })
+            except Exception as item_error:
+                print(f"Error processing news item: {item_error}")
+                continue
 
         return {"symbol": symbol.upper(), "news": news_items}
     except Exception as e:
+        print(f"Error fetching news: {e}")
+        import traceback
+        traceback.print_exc()
         return {"symbol": symbol.upper(), "news": []}
 
 @app.get("/api/search/{query}")
 def search_stocks(query: str):
+    """Search for stocks with autocomplete suggestions"""
     try:
-        ticker = yf.Ticker(query.upper())
-        info = ticker.info
-
-        return {
-            "results": [{
-                "symbol": query.upper(),
-                "name": info.get('longName', query.upper()),
-                "type": info.get('quoteType', 'EQUITY'),
-                "exchange": info.get('exchange', 'Unknown')
-            }]
+        # Common stocks database for quick search
+        common_stocks = {
+            'AAPL': 'Apple Inc.',
+            'MSFT': 'Microsoft Corporation',
+            'GOOGL': 'Alphabet Inc. (Google)',
+            'GOOG': 'Alphabet Inc. Class C',
+            'AMZN': 'Amazon.com Inc.',
+            'TSLA': 'Tesla Inc.',
+            'META': 'Meta Platforms Inc. (Facebook)',
+            'NVDA': 'NVIDIA Corporation',
+            'BRK.B': 'Berkshire Hathaway Inc.',
+            'JPM': 'JPMorgan Chase & Co.',
+            'V': 'Visa Inc.',
+            'JNJ': 'Johnson & Johnson',
+            'WMT': 'Walmart Inc.',
+            'PG': 'Procter & Gamble Co.',
+            'MA': 'Mastercard Inc.',
+            'UNH': 'UnitedHealth Group Inc.',
+            'HD': 'Home Depot Inc.',
+            'DIS': 'Walt Disney Co.',
+            'BAC': 'Bank of America Corp.',
+            'NFLX': 'Netflix Inc.',
+            'ADBE': 'Adobe Inc.',
+            'CRM': 'Salesforce Inc.',
+            'CSCO': 'Cisco Systems Inc.',
+            'PFE': 'Pfizer Inc.',
+            'INTC': 'Intel Corporation',
+            'AMD': 'Advanced Micro Devices Inc.',
+            'PYPL': 'PayPal Holdings Inc.',
+            'ORCL': 'Oracle Corporation',
+            'CMCSA': 'Comcast Corporation',
+            'NKE': 'Nike Inc.',
+            'COST': 'Costco Wholesale Corp.',
+            'T': 'AT&T Inc.',
+            'VZ': 'Verizon Communications Inc.',
+            'MRK': 'Merck & Co. Inc.',
+            'PEP': 'PepsiCo Inc.',
+            'KO': 'Coca-Cola Co.',
+            'ABT': 'Abbott Laboratories',
+            'TMO': 'Thermo Fisher Scientific Inc.',
+            'CVX': 'Chevron Corporation',
+            'XOM': 'Exxon Mobil Corporation',
+            'BA': 'Boeing Co.',
+            'GE': 'General Electric Co.',
+            'F': 'Ford Motor Co.',
+            'GM': 'General Motors Co.',
+            'UBER': 'Uber Technologies Inc.',
+            'LYFT': 'Lyft Inc.',
+            'SNAP': 'Snap Inc.',
+            'TWTR': 'Twitter Inc.',
+            'SQ': 'Block Inc. (Square)',
+            'SHOP': 'Shopify Inc.',
+            'SPOT': 'Spotify Technology S.A.',
+            'ZM': 'Zoom Video Communications Inc.',
         }
-    except:
+
+        query_upper = query.upper()
+        results = []
+
+        # Search in common stocks first
+        for symbol, name in common_stocks.items():
+            if query_upper in symbol or query_upper in name.upper():
+                results.append({
+                    "symbol": symbol,
+                    "name": name,
+                    "type": "EQUITY",
+                    "exchange": "NASDAQ/NYSE"
+                })
+
+        # If exact match in query, try to fetch it
+        if len(results) == 0 or query_upper not in [r['symbol'] for r in results]:
+            try:
+                ticker = yf.Ticker(query_upper)
+                info = ticker.info
+                long_name = info.get('longName', info.get('shortName', query_upper))
+                if long_name and long_name != query_upper:
+                    results.insert(0, {
+                        "symbol": query_upper,
+                        "name": long_name,
+                        "type": info.get('quoteType', 'EQUITY'),
+                        "exchange": info.get('exchange', 'Unknown')
+                    })
+            except:
+                pass
+
+        return {"results": results[:10]}  # Return top 10 matches
+    except Exception as e:
+        print(f"Search error: {e}")
         return {"results": []}
 
 @app.get("/api/market/overview")
