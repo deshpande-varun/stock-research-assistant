@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, TrendingUp, Building2, Sparkles, ArrowRight, Menu, X } from 'lucide-react';
+import { Search, TrendingUp, Building2, Sparkles, ArrowRight, Menu, X, User, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const API_BASE = 'http://localhost:8000/api';
 
 export default function Header({ currentView, onViewChange, onSearch }) {
+  const { user, userData, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -20,7 +25,17 @@ export default function Header({ currentView, onViewChange, onSearch }) {
     { id: 'markets', label: 'Markets' },
     { id: 'watchlist', label: 'Watchlist' },
     { id: 'news', label: 'News' },
+    { id: 'pricing', label: 'Pricing' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -272,10 +287,47 @@ export default function Header({ currentView, onViewChange, onSearch }) {
               )}
             </AnimatePresence>
           </form>
-          <button className="relative px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105">
-            <span className="relative z-10">Upgrade Pro</span>
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 hover:opacity-20 blur transition-opacity"></div>
-          </button>
+          {userData?.subscriptionTier !== 'pro' && (
+            <button
+              onClick={() => {
+                onViewChange('pricing');
+                setMobileMenuOpen(false);
+              }}
+              className="relative px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105"
+            >
+              <span className="relative z-10">Upgrade Pro</span>
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 hover:opacity-20 blur transition-opacity"></div>
+            </button>
+          )}
+
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 transition-all"
+            >
+              <User size={18} />
+              <span className="text-sm font-medium">{userData?.displayName || user?.email}</span>
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div className="p-3 border-b border-gray-700">
+                  <div className="text-sm font-medium text-gray-300">{userData?.displayName}</div>
+                  <div className="text-xs text-gray-500">{user?.email}</div>
+                  <div className="mt-2 inline-block px-2 py-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded text-xs font-bold uppercase">
+                    {userData?.subscriptionTier || 'free'}
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-750 transition-colors flex items-center gap-2 text-sm text-gray-300"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Search & Menu Button */}
@@ -331,10 +383,34 @@ export default function Header({ currentView, onViewChange, onSearch }) {
                 </button>
               ))}
 
-              {/* Mobile Upgrade Button */}
-              <button className="w-full mt-4 px-4 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg">
-                Upgrade Pro
-              </button>
+              {/* Mobile User Menu */}
+              <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div className="mb-3">
+                  <div className="text-sm font-medium text-gray-300">{userData?.displayName}</div>
+                  <div className="text-xs text-gray-500 mb-2">{user?.email}</div>
+                  <div className="inline-block px-2 py-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded text-xs font-bold uppercase">
+                    {userData?.subscriptionTier || 'free'}
+                  </div>
+                </div>
+                {userData?.subscriptionTier !== 'pro' && (
+                  <button
+                    onClick={() => {
+                      onViewChange('pricing');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full mb-2 px-4 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg"
+                  >
+                    Upgrade Pro
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-3 rounded-lg font-semibold text-white bg-gray-700 hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

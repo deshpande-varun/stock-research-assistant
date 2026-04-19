@@ -1,10 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
 from pydantic import BaseModel
+import stripe
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 app = FastAPI(title="Stock Research Assistant API")
 
@@ -340,6 +348,65 @@ def get_market_overview():
         return {"indices": overview}
     except Exception as e:
         return {"indices": []}
+
+class CheckoutSession(BaseModel):
+    priceId: str
+    userId: str
+    userEmail: str
+    tier: str
+
+@app.post("/api/create-checkout-session")
+async def create_checkout_session(session_data: CheckoutSession):
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': session_data.priceId,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url='http://localhost:5173/?success=true',
+            cancel_url='http://localhost:5173/pricing?canceled=true',
+            client_reference_id=session_data.userId,
+            customer_email=session_data.userEmail,
+            metadata={
+                'user_id': session_data.userId,
+                'tier': session_data.tier
+            }
+        )
+        return {"sessionId": checkout_session.id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/stripe-webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('metadata', {}).get('user_id')
+        tier = session.get('metadata', {}).get('tier')
+
+        # Here you would update the user's subscription tier in Firebase
+        # This is a placeholder - you'll need to implement Firebase Admin SDK
+        print(f"User {user_id} subscribed to {tier} tier")
+
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        # Handle subscription cancellation
+        print(f"Subscription {subscription['id']} was canceled")
+
+    return {"status": "success"}
 
 if __name__ == "__main__":
     import uvicorn

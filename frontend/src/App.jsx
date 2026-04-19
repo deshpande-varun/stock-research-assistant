@@ -1,18 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
 import MarketsView from './components/MarketsView'
 import WatchlistView from './components/WatchlistView'
 import NewsView from './components/NewsView'
+import Login from './components/Auth/Login'
+import Signup from './components/Auth/Signup'
+import Pricing from './components/Pricing'
+import Checkout from './components/Checkout'
 import './App.css'
 
 const DEFAULT_WATCHLIST = ['AAPL', 'TSLA', 'MSFT', 'NVDA', 'GOOGL'];
 
-function App() {
+function ProtectedRoute({ children }) {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+}
+
+function MainApp() {
   const [selectedStock, setSelectedStock] = useState('AAPL');
   const [watchlist, setWatchlist] = useState(DEFAULT_WATCHLIST);
   const [currentView, setCurrentView] = useState('dashboard');
+  const { user, userData } = useAuth();
+
+  useEffect(() => {
+    if (userData?.watchlists?.length > 0) {
+      setWatchlist(userData.watchlists);
+    }
+  }, [userData]);
 
   const addToWatchlist = (symbol) => {
     if (!watchlist.includes(symbol.toUpperCase())) {
@@ -29,7 +47,7 @@ function App() {
       case 'markets':
         return <MarketsView onSelectStock={(symbol) => {
           setSelectedStock(symbol);
-          addToWatchlist(symbol);
+          handleAddToWatchlist(symbol);
           setCurrentView('dashboard');
         }} />;
       case 'watchlist':
@@ -43,12 +61,28 @@ function App() {
         />;
       case 'news':
         return <NewsView />;
+      case 'pricing':
+        return <Pricing />;
       default:
         return <Dashboard
           symbol={selectedStock}
-          onAddToWatchlist={addToWatchlist}
+          onAddToWatchlist={handleAddToWatchlist}
         />;
     }
+  };
+
+  const canAddToWatchlist = () => {
+    const tier = userData?.subscriptionTier || 'free';
+    const limits = { free: 5, premium: 25, pro: Infinity };
+    return watchlist.length < limits[tier];
+  };
+
+  const handleAddToWatchlist = (symbol) => {
+    if (!canAddToWatchlist()) {
+      alert(`Watchlist limit reached. Upgrade to add more stocks!`);
+      return;
+    }
+    addToWatchlist(symbol);
   };
 
   return (
@@ -58,7 +92,7 @@ function App() {
         onViewChange={setCurrentView}
         onSearch={(symbol) => {
           setSelectedStock(symbol);
-          addToWatchlist(symbol);
+          handleAddToWatchlist(symbol);
           setCurrentView('dashboard');
         }}
       />
@@ -105,6 +139,25 @@ function App() {
       </div>
     </div>
   )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/checkout/:tier" element={
+        <ProtectedRoute>
+          <Checkout />
+        </ProtectedRoute>
+      } />
+      <Route path="/*" element={
+        <ProtectedRoute>
+          <MainApp />
+        </ProtectedRoute>
+      } />
+    </Routes>
+  );
 }
 
 export default App
