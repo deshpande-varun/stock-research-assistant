@@ -118,25 +118,25 @@ export default function Header({ currentView, onViewChange, onSearch }) {
   };
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+    <header className="bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50 shadow-xl">
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <h1
-            className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent cursor-pointer"
+            className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent cursor-pointer hover:scale-105 transition-transform"
             onClick={() => onViewChange('dashboard')}
           >
             StockPulse
           </h1>
-          <nav className="flex gap-6">
+          <nav className="flex gap-2">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`${
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   currentView === item.id
-                    ? 'text-blue-400 font-medium'
-                    : 'text-gray-400 hover:text-gray-200'
-                } transition`}
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
               >
                 {item.label}
               </button>
@@ -263,8 +263,9 @@ export default function Header({ currentView, onViewChange, onSearch }) {
               )}
             </AnimatePresence>
           </form>
-          <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium transition">
-            Upgrade Pro
+          <button className="relative px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105">
+            <span className="relative z-10">Upgrade Pro</span>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 hover:opacity-20 blur transition-opacity"></div>
           </button>
         </div>
       </div>

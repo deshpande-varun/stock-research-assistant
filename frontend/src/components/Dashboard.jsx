@@ -48,49 +48,75 @@ export default function Dashboard({ symbol }) {
   const isPositive = stockData.changePercent >= 0;
 
   return (
-    <main className="flex-1 p-6 overflow-y-auto">
-      <div className="mb-6">
+    <main className="flex-1 p-8 overflow-y-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 custom-scrollbar">
+      {/* Stock Header with Premium Design */}
+      <div className="mb-8 bg-gradient-to-br from-gray-900/80 to-gray-900/40 backdrop-blur-sm rounded-3xl p-8 border border-gray-800/50 shadow-2xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{stockData.name}</h1>
-            <p className="text-gray-400">{stockData.symbol} · NASDAQ</p>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                {stockData.name}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-400 font-mono text-lg">{stockData.symbol}</p>
+              <span className="text-gray-600">·</span>
+              <span className="text-blue-400 text-sm font-medium">NASDAQ</span>
+            </div>
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold">${stockData.price.toFixed(2)}</div>
-            <div className={`text-xl flex items-center gap-2 justify-end ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-              {isPositive ? <TrendingUp /> : <TrendingDown />}
+            <div className="text-5xl font-bold mb-2">${stockData.price.toFixed(2)}</div>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-lg ${
+              isPositive
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-red-500/20 text-red-400'
+            }`}>
+              {isPositive ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
               {isPositive ? '+' : ''}${stockData.change.toFixed(2)} ({isPositive ? '+' : ''}
-              {stockData.changePercent.toFixed(2)}%) Today
+              {stockData.changePercent.toFixed(2)}%)
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-          <div className="text-gray-400 text-sm mb-1">Market Cap</div>
-          <div className="text-2xl font-bold">
-            {stockData.marketCap
-              ? `$${(stockData.marketCap / 1e12).toFixed(2)}T`
-              : 'N/A'}
+      {/* Key Metrics Cards with Gradient Borders */}
+      <div className="grid grid-cols-4 gap-5 mb-8">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity"></div>
+          <div className="relative bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-blue-500/50 transition-all duration-300 shadow-lg">
+            <div className="text-gray-400 text-sm mb-2 font-medium">Market Cap</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              {stockData.marketCap
+                ? `$${(stockData.marketCap / 1e12).toFixed(2)}T`
+                : 'N/A'}
+            </div>
           </div>
         </div>
-        <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-          <div className="text-gray-400 text-sm mb-1">P/E Ratio</div>
-          <div className="text-2xl font-bold">
-            {stockData.pe_ratio ? stockData.pe_ratio.toFixed(2) : 'N/A'}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity"></div>
+          <div className="relative bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-300 shadow-lg">
+            <div className="text-gray-400 text-sm mb-2 font-medium">P/E Ratio</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              {stockData.pe_ratio ? stockData.pe_ratio.toFixed(2) : 'N/A'}
+            </div>
           </div>
         </div>
-        <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-          <div className="text-gray-400 text-sm mb-1">52 Week High</div>
-          <div className="text-2xl font-bold">
-            {stockData.high_52week ? `$${stockData.high_52week.toFixed(2)}` : 'N/A'}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity"></div>
+          <div className="relative bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-green-500/50 transition-all duration-300 shadow-lg">
+            <div className="text-gray-400 text-sm mb-2 font-medium">52 Week High</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+              {stockData.high_52week ? `$${stockData.high_52week.toFixed(2)}` : 'N/A'}
+            </div>
           </div>
         </div>
-        <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-          <div className="text-gray-400 text-sm mb-1">Volume</div>
-          <div className="text-2xl font-bold">
-            {stockData.volume ? `${(stockData.volume / 1e6).toFixed(1)}M` : 'N/A'}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity"></div>
+          <div className="relative bg-gray-900 rounded-2xl p-6 border border-gray-800 hover:border-orange-500/50 transition-all duration-300 shadow-lg">
+            <div className="text-gray-400 text-sm mb-2 font-medium">Volume</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+              {stockData.volume ? `${(stockData.volume / 1e6).toFixed(1)}M` : 'N/A'}
+            </div>
           </div>
         </div>
       </div>

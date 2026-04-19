@@ -43,10 +43,10 @@ export default function Sidebar({ watchlist, selectedStock, onSelectStock, onRem
   }, [watchlist]);
 
   return (
-    <aside className="w-80 bg-gray-900 border-r border-gray-800 h-[calc(100vh-73px)] overflow-y-auto sticky top-[73px]">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">My Watchlist</h2>
+    <aside className="w-80 bg-gray-900/50 backdrop-blur-xl border-r border-gray-800/50 h-[calc(100vh-73px)] overflow-y-auto sticky top-[73px] shadow-2xl custom-scrollbar">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">My Watchlist</h2>
         </div>
 
         <div className="space-y-2">
@@ -57,8 +57,10 @@ export default function Sidebar({ watchlist, selectedStock, onSelectStock, onRem
             return (
               <div
                 key={symbol}
-                className={`bg-gray-800 hover:bg-gray-750 rounded-lg p-3 cursor-pointer border-l-4 transition group ${
-                  isSelected ? 'border-blue-500' : 'border-transparent'
+                className={`rounded-xl p-4 cursor-pointer transition-all duration-300 group relative overflow-hidden ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20'
+                    : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-transparent hover:border-gray-700'
                 }`}
                 onClick={() => onSelectStock(symbol)}
               >
